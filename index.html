@@ -140,6 +140,23 @@ const BACKEND = "https://seller-profit-dashboard-backend.onrender.com";
 const API = BACKEND + "/api";
 const state = { connected:false, summary:null };
 
+// Multi-user session handoff. GitHub Pages is a different site from the Render
+// API, so browser third-party-cookie rules can prevent the session cookie from
+// being sent on fetch(). The backend returns a short-lived random session ID
+// after OAuth; we store it locally and send it as an explicit header.
+const params = new URLSearchParams(location.search);
+const sidFromOAuth = params.get("sid");
+if(sidFromOAuth){
+  localStorage.setItem("spd_session", sidFromOAuth);
+  history.replaceState({}, document.title, location.pathname);
+}
+function apiFetch(path, options={}){
+  const headers = new Headers(options.headers || {});
+  const sid = localStorage.getItem("spd_session");
+  if(sid) headers.set("X-SPD-Session", sid);
+  return fetch(path, {...options, headers, credentials:"include"});
+}
+
 function money(v){ return "$"+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function setStatus(connected, shopName){
   const el=document.getElementById("connectionStatus");
@@ -161,7 +178,8 @@ document.getElementById("settingsConnect").onclick=showModal;
 document.getElementById("closeModal").onclick=hideModal;
 document.getElementById("startOAuth").onclick=()=>{ window.location.href=BACKEND+"/auth/etsy"; };
 document.getElementById("disconnectBtn").onclick=async()=>{
-  try{ await fetch(API+"/etsy/disconnect",{method:"POST",credentials:"include"}); }catch(e){}
+  try{ await apiFetch(API+"/etsy/disconnect",{method:"POST"}); }catch(e){}
+  localStorage.removeItem("spd_session");
   location.reload();
 };
 
@@ -184,7 +202,7 @@ renderSample();
 
 async function checkConnection(){
  try{
-   const r=await fetch(API+"/etsy/status",{credentials:"include"});
+   const r=await apiFetch(API+"/etsy/status");
    if(!r.ok)return;
    const d=await r.json();
    if(d.connected){
@@ -196,7 +214,7 @@ async function checkConnection(){
 }
 async function loadSummary(){
  try{
-   const r=await fetch(API+"/etsy/data-summary",{credentials:"include"});
+   const r=await apiFetch(API+"/etsy/data-summary");
    if(!r.ok)return;
    const d=await r.json();
    state.summary=d;
@@ -219,7 +237,7 @@ async function loadSummary(){
 async function syncEtsy(){
  const msg=document.getElementById("syncMsg"); msg.textContent="Syncing Etsy data…"; msg.classList.add("show");
  try{
-   const r=await fetch(API+"/etsy/sync",{method:"POST",credentials:"include"});
+   const r=await apiFetch(API+"/etsy/sync",{method:"POST"});
    const d=await r.json();
    if(!r.ok) throw new Error(d.detail||d.error||"Sync failed");
    msg.textContent="Sync completed. Refreshing dashboard…";
@@ -245,8 +263,7 @@ function calcPrice(){
 }
 document.querySelectorAll("#pricing input").forEach(x=>x.oninput=calcPrice); calcPrice();
 
-const params=new URLSearchParams(location.search);
-if(params.get("etsy_connected")==="1"){
+if(new URLSearchParams(location.search).get("etsy_connected")==="1"){
   history.replaceState({},document.title,location.pathname);
 }
 checkConnection();
