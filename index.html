@@ -140,7 +140,12 @@ const BACKEND = "https://seller-profit-dashboard-backend.onrender.com";
 const API = BACKEND + "/api";
 const state = { connected:false, summary:null };
 const SESSION_KEY = "spd_session";
-function sessionId(){ return sessionStorage.getItem(SESSION_KEY) || ""; }
+function sessionId(){ return window.localStorage.getItem(SESSION_KEY) || ""; }
+function ensureClientSession(){
+  let sid = sessionId();
+  if(!sid){ sid = crypto.randomUUID(); window.localStorage.setItem(SESSION_KEY, sid); }
+  return sid;
+}
 function apiFetch(url, options={}){
   const opts={...options, credentials:"include", headers:{...(options.headers||{})}};
   const sid=sessionId();
@@ -167,7 +172,7 @@ function hideModal(){document.getElementById("modal").classList.remove("show")}
 document.getElementById("connectBtn").onclick=showModal;
 document.getElementById("settingsConnect").onclick=showModal;
 document.getElementById("closeModal").onclick=hideModal;
-document.getElementById("startOAuth").onclick=()=>{ window.location.href=BACKEND+"/auth/etsy"; };
+document.getElementById("startOAuth").onclick=()=>{ const sid=ensureClientSession(); window.location.href=BACKEND+"/auth/etsy?sid="+encodeURIComponent(sid); };
 document.getElementById("disconnectBtn").onclick=async()=>{
   try{ await apiFetch(API+"/etsy/disconnect",{method:"POST"}); }catch(e){}
   location.reload();
@@ -256,11 +261,12 @@ document.querySelectorAll("#pricing input").forEach(x=>x.oninput=calcPrice); cal
 const params=new URLSearchParams(location.search);
 const returnedSid=params.get("sid");
 if(returnedSid){
-  sessionStorage.setItem(SESSION_KEY, returnedSid);
+  window.localStorage.setItem(SESSION_KEY, returnedSid);
 }
 if(params.get("etsy_connected")==="1" || returnedSid){
   history.replaceState({},document.title,location.pathname);
 }
+ensureClientSession();
 checkConnection();
 </script>
 </body>
