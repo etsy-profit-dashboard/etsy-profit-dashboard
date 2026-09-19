@@ -139,22 +139,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;p
 const BACKEND = "https://seller-profit-dashboard-backend.onrender.com";
 const API = BACKEND + "/api";
 const state = { connected:false, summary:null };
-
-// Multi-user session handoff. GitHub Pages is a different site from the Render
-// API, so browser third-party-cookie rules can prevent the session cookie from
-// being sent on fetch(). The backend returns a short-lived random session ID
-// after OAuth; we store it locally and send it as an explicit header.
-const params = new URLSearchParams(location.search);
-const sidFromOAuth = params.get("sid");
-if(sidFromOAuth){
-  localStorage.setItem("spd_session", sidFromOAuth);
-  history.replaceState({}, document.title, location.pathname);
-}
-function apiFetch(path, options={}){
-  const headers = new Headers(options.headers || {});
-  const sid = localStorage.getItem("spd_session");
-  if(sid) headers.set("X-SPD-Session", sid);
-  return fetch(path, {...options, headers, credentials:"include"});
+const SESSION_KEY = "spd_session";
+function sessionId(){ return sessionStorage.getItem(SESSION_KEY) || ""; }
+function apiFetch(url, options={}){
+  const opts={...options, credentials:"include", headers:{...(options.headers||{})}};
+  const sid=sessionId();
+  if(sid) opts.headers["X-SPD-Session"]=sid;
+  return fetch(url, opts);
 }
 
 function money(v){ return "$"+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -179,7 +170,6 @@ document.getElementById("closeModal").onclick=hideModal;
 document.getElementById("startOAuth").onclick=()=>{ window.location.href=BACKEND+"/auth/etsy"; };
 document.getElementById("disconnectBtn").onclick=async()=>{
   try{ await apiFetch(API+"/etsy/disconnect",{method:"POST"}); }catch(e){}
-  localStorage.removeItem("spd_session");
   location.reload();
 };
 
@@ -263,7 +253,12 @@ function calcPrice(){
 }
 document.querySelectorAll("#pricing input").forEach(x=>x.oninput=calcPrice); calcPrice();
 
-if(new URLSearchParams(location.search).get("etsy_connected")==="1"){
+const params=new URLSearchParams(location.search);
+const returnedSid=params.get("sid");
+if(returnedSid){
+  sessionStorage.setItem(SESSION_KEY, returnedSid);
+}
+if(params.get("etsy_connected")==="1" || returnedSid){
   history.replaceState({},document.title,location.pathname);
 }
 checkConnection();
