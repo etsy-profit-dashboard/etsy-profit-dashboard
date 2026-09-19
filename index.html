@@ -1,1 +1,250 @@
-<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Seller Profit Dashboard</title><style>body{font-family:Arial;margin:0;background:#f6f7fb;color:#172033}header{background:white;padding:20px 6%;border-bottom:1px solid #ddd;font-weight:800;font-size:22px}main{max-width:1100px;margin:30px auto;padding:0 20px}button{padding:11px 16px;border:0;border-radius:8px;cursor:pointer;font-weight:700}.p{background:#111827;color:white}.s{background:white;border:1px solid #ddd}.top{display:flex;justify-content:space-between;align-items:center}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.card,.panel{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:18px}.label{color:#667085;font-size:13px}.value{font-size:26px;font-weight:800;margin:7px 0}.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px;border-bottom:1px solid #eee;font-size:13px}.profit{font-weight:800}.tip{margin-top:15px;padding:13px;background:#f5f6f8;border-radius:9px;font-size:13px;line-height:1.5}.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center}.box{background:white;padding:25px;border-radius:12px;width:420px;max-width:90%}@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}@media(max-width:500px){.cards{grid-template-columns:1fr}.top{display:block}}</style></head><body><header>Seller Profit Dashboard <small style='float:right;color:#667085'>DEMO • Sample Data</small></header><main><div class='top'><div><h1>Profit Dashboard</h1><p class='label'>See what your shop actually makes after costs, fees, discounts and ads.</p></div><div><button class='s' onclick='show("Pricing Calculator","Demo calculator. The live calculation engine will be connected next.")'>Pricing Calculator</button> <button class='p' onclick='show("Connect Etsy","Demo mode: Etsy OAuth is not connected yet. After Etsy approves the app, this button will start the real authorization flow.")'>Connect Etsy</button></div></div><section class='cards'><div class='card'><div class='label'>Revenue</div><div class='value'>$18,500</div><div class='label'>620 orders</div></div><div class='card'><div class='label'>Total Costs</div><div class='value'>$11,600</div><div class='label'>Product + shipping + fees + ads</div></div><div class='card'><div class='label'>Net Profit</div><div class='value'>$6,900</div><div class='label'>After estimated costs</div></div><div class='card'><div class='label'>Profit Margin</div><div class='value'>37.3%</div><div class='label'>Net profit / revenue</div></div></section><div class='grid'><div class='panel'><h2>Top Products by Profit</h2><table><tr><th>Product</th><th>Orders</th><th>Revenue</th><th>Profit</th><th>Margin</th></tr><tr><td>Minimalist T-Shirt</td><td>180</td><td>$5,400</td><td class='profit'>$2,180</td><td>40.4%</td></tr><tr><td>Vintage Poster</td><td>135</td><td>$3,780</td><td class='profit'>$1,760</td><td>46.6%</td></tr><tr><td>Custom Mug</td><td>120</td><td>$3,240</td><td class='profit'>$1,020</td><td>31.5%</td></tr><tr><td>Canvas Print</td><td>92</td><td>$3,220</td><td class='profit'>$890</td><td>27.6%</td></tr></table></div><div class='panel'><h2>Cost Breakdown</h2><p>Product cost <b style='float:right'>$6,200</b></p><p>Shipping <b style='float:right'>$2,100</b></p><p>Etsy fees <b style='float:right'>$2,000</b></p><p>Ads <b style='float:right'>$1,300</b></p><div class='tip'><b>Insight:</b> High sales volume does not always mean high profit. Compare profit per order and margin.</div></div></div><div class='grid'><div class='panel'><h2>Pricing Quick Test</h2><p>Product cost: <b>$15</b></p><p>Shipping: <b>$5</b></p><p>Other costs: <b>$2</b></p><p>Target profit: <b>$10</b></p><div class='tip'>Example: with a 20% discount, required list price is about <b>$38.24</b> under the demo assumptions.</div></div><div class='panel'><h2>Break-even</h2><div class='value'>$2,000</div><div class='label'>Monthly fixed costs</div><div class='tip'>At $8 average profit/order: about <b>250 orders/month</b> to cover fixed costs.</div></div></div></main><div class='modal' id='m'><div class='box'><h2 id='t'></h2><p id='x'></p><button class='p' onclick='m.style.display="none"'>Close</button></div></div><script>function show(a,b){t.textContent=a;x.textContent=b;m.style.display='flex'}</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seller Profit Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f6f7fb;color:#172033}
+button,input,select{font:inherit}button{cursor:pointer}
+.topbar{height:64px;background:#fff;border-bottom:1px solid #e7e9ef;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10}
+.logo{font-weight:800;font-size:19px}.status{font-size:12px;font-weight:700;padding:7px 11px;border-radius:999px;background:#fff3d6;color:#8a5a00}
+.status.connected{background:#e5f7ed;color:#167044}
+.layout{display:flex;min-height:calc(100vh - 64px)}
+.sidebar{width:220px;background:#fff;border-right:1px solid #e7e9ef;padding:20px 12px}
+.navbtn{width:100%;text-align:left;border:0;background:transparent;padding:11px 13px;border-radius:9px;margin-bottom:4px;color:#566074}
+.navbtn.active,.navbtn:hover{background:#f0f2f7;color:#111827;font-weight:700}
+.main{flex:1;padding:28px;max-width:1400px}.page-title{font-size:28px;font-weight:800;margin:0 0 5px}.muted{color:#6b7280;font-size:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0}
+.card{background:#fff;border:1px solid #e7e9ef;border-radius:14px;padding:20px}
+.metric-label{font-size:13px;color:#697386}.metric{font-size:28px;font-weight:800;margin-top:8px}.metric-sub{font-size:12px;color:#7b8495;margin-top:5px}
+.grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}.section-title{font-weight:800;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #edf0f4}th{color:#687386;font-weight:700}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.primary{background:#111827;color:white;border:0;border-radius:9px;padding:10px 15px;font-weight:700}.secondary{background:#fff;color:#111827;border:1px solid #d8dce5;border-radius:9px;padding:10px 15px;font-weight:700}
+.empty{padding:28px;text-align:center;color:#737d90;border:1px dashed #d9dde6;border-radius:10px}
+.page{display:none}.page.active{display:block}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;align-items:center;justify-content:center;padding:20px}.modal-backdrop.show{display:flex}
+.modal{width:min(520px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.modal h2{margin:0 0 8px}.modal p{color:#667085;line-height:1.5}.modal-close{float:right;border:0;background:transparent;font-size:22px}
+.kpi{display:flex;justify-content:space-between;gap:15px;padding:10px 0;border-bottom:1px solid #edf0f4}.green{color:#16824b}.red{color:#c24141}
+.banner{background:#eef5ff;border:1px solid #d8e7ff;padding:13px 15px;border-radius:10px;margin:18px 0;color:#244a7c;font-size:13px}
+.spinner{display:none;margin-top:10px;font-size:13px;color:#667085}.spinner.show{display:block}
+@media(max-width:900px){.sidebar{width:180px}.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:620px){.sidebar{display:none}.main{padding:18px}.grid4{grid-template-columns:1fr}.topbar{padding:0 15px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">Seller Profit Dashboard</div>
+  <div id="connectionStatus" class="status">DEMO • Sample Data</div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <button class="navbtn active" data-page="dashboard">Dashboard</button>
+  <button class="navbtn" data-page="products">Products</button>
+  <button class="navbtn" data-page="profit">Profit Calculator</button>
+  <button class="navbtn" data-page="pricing">Pricing Calculator</button>
+  <button class="navbtn" data-page="discount">Discount Simulator</button>
+  <button class="navbtn" data-page="ads">Advertising Costs</button>
+  <button class="navbtn" data-page="comparison">Product Comparison</button>
+  <button class="navbtn" data-page="settings">Settings</button>
+</aside>
+
+<main class="main">
+<section id="dashboard" class="page active">
+  <h1 class="page-title">Profit Dashboard</h1>
+  <div id="shopInfo" class="muted">Connect your Etsy shop to replace the sample data with real data.</div>
+  <div class="actions" style="margin-top:16px">
+    <button class="primary" id="connectBtn">Connect Etsy</button>
+    <button class="secondary" id="syncBtn" style="display:none">Sync Etsy Data</button>
+  </div>
+  <div id="syncMsg" class="spinner"></div>
+
+  <div class="grid4">
+    <div class="card"><div class="metric-label">Revenue</div><div class="metric" id="revenue">$18,500</div><div class="metric-sub">Sample data</div></div>
+    <div class="card"><div class="metric-label">Total Costs</div><div class="metric" id="costs">$11,600</div><div class="metric-sub">Sample data</div></div>
+    <div class="card"><div class="metric-label">Net Profit</div><div class="metric" id="profitValue">$6,900</div><div class="metric-sub">Sample data</div></div>
+    <div class="card"><div class="metric-label">Profit Margin</div><div class="metric" id="margin">37.3%</div><div class="metric-sub">Sample data</div></div>
+  </div>
+
+  <div class="banner" id="connectionBanner">
+    <b>Next step:</b> Connect Etsy with OAuth. Your Etsy password is never entered into this dashboard.
+  </div>
+
+  <div class="grid2">
+    <div class="card"><div class="section-title">Top Products by Profit</div><div id="productsTable"></div></div>
+    <div class="card"><div class="section-title">Cost Breakdown</div><div id="costBreakdown"></div></div>
+  </div>
+</section>
+
+<section id="products" class="page">
+  <h1 class="page-title">Products</h1><p class="muted">Products and transactions synchronized from Etsy will appear here.</p>
+  <div class="card" style="margin-top:18px"><div id="productList" class="empty">No live Etsy product data yet.</div></div>
+</section>
+
+<section id="profit" class="page">
+  <h1 class="page-title">Profit Calculator</h1><p class="muted">Calculate estimated profit per order.</p>
+  <div class="card" style="max-width:700px;margin-top:18px">
+    <div class="kpi"><span>Sale Price</span><input id="pcPrice" type="number" value="30" step=".01"></div>
+    <div class="kpi"><span>Product Cost</span><input id="pcProduct" type="number" value="12" step=".01"></div>
+    <div class="kpi"><span>Shipping</span><input id="pcShip" type="number" value="5" step=".01"></div>
+    <div class="kpi"><span>Other Costs</span><input id="pcOther" type="number" value="1" step=".01"></div>
+    <div class="kpi"><span>Etsy Fee %</span><input id="pcFee" type="number" value="10" step=".1"></div>
+    <div class="kpi"><span>Ads %</span><input id="pcAds" type="number" value="5" step=".1"></div>
+    <div style="margin-top:18px;font-size:24px;font-weight:800" id="pcResult">$7.50 profit</div>
+    <div class="muted" id="pcMargin">25.0% margin</div>
+  </div>
+</section>
+
+<section id="pricing" class="page">
+  <h1 class="page-title">Pricing Calculator</h1><p class="muted">Find the required list price for a target profit.</p>
+  <div class="card" style="max-width:700px;margin-top:18px">
+    <div class="kpi"><span>Target Profit</span><input id="prTarget" type="number" value="10" step=".01"></div>
+    <div class="kpi"><span>Product Cost</span><input id="prProduct" type="number" value="15" step=".01"></div>
+    <div class="kpi"><span>Shipping</span><input id="prShip" type="number" value="5" step=".01"></div>
+    <div class="kpi"><span>Other Costs</span><input id="prOther" type="number" value="2" step=".01"></div>
+    <div class="kpi"><span>Etsy Fee %</span><input id="prFee" type="number" value="10" step=".1"></div>
+    <div class="kpi"><span>Ads %</span><input id="prAds" type="number" value="0" step=".1"></div>
+    <div class="kpi"><span>Discount %</span><input id="prDiscount" type="number" value="0" step=".1"></div>
+    <div style="margin-top:18px;font-size:24px;font-weight:800" id="prResult">$35.56</div>
+    <div class="muted">Required list price</div>
+  </div>
+</section>
+
+<section id="discount" class="page"><h1 class="page-title">Discount Simulator</h1><p class="muted">Compare sale price and estimated profit at different discount levels.</p><div class="card" style="margin-top:18px"><div class="empty">Calculator module ready. Live product data will be connected after Etsy sync.</div></div></section>
+<section id="ads" class="page"><h1 class="page-title">Advertising Costs</h1><p class="muted">Analyze advertising spend, revenue and estimated ROAS.</p><div class="card" style="margin-top:18px"><div class="empty">Advertising analytics will use synchronized order data and your ad-cost inputs.</div></div></section>
+<section id="comparison" class="page"><h1 class="page-title">Product Comparison</h1><p class="muted">Compare profit, margin and costs across products.</p><div class="card" style="margin-top:18px"><div class="empty">Connect and sync Etsy to populate product comparisons.</div></div></section>
+<section id="settings" class="page">
+  <h1 class="page-title">Settings</h1><p class="muted">Connection and dashboard settings.</p>
+  <div class="card" style="margin-top:18px">
+    <div class="section-title">Etsy Connection</div>
+    <div id="settingsConnection">Not connected</div>
+    <div class="actions" style="margin-top:16px"><button class="primary" id="settingsConnect">Connect Etsy</button><button class="secondary" id="settingsSync" style="display:none">Sync Data</button></div>
+  </div>
+</section>
+</main>
+</div>
+
+<div class="modal-backdrop" id="modal">
+ <div class="modal">
+   <button class="modal-close" id="closeModal">×</button>
+   <h2>Connect Etsy</h2>
+   <p>You will be redirected to Etsy to authorize access. This dashboard does not ask for or store your Etsy password.</p>
+   <button class="primary" id="startOAuth">Continue to Etsy</button>
+ </div>
+</div>
+
+<script>
+const BACKEND = "https://seller-profit-dashboard-backend.onrender.com";
+const API = BACKEND + "/api";
+const state = { connected:false, summary:null };
+
+function money(v){ return "$"+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function setStatus(connected, shopName){
+  const el=document.getElementById("connectionStatus");
+  el.textContent=connected ? "LIVE • Etsy Connected" : "DEMO • Sample Data";
+  el.className="status"+(connected?" connected":"");
+  document.getElementById("connectBtn").style.display=connected?"none":"inline-block";
+  document.getElementById("syncBtn").style.display=connected?"inline-block":"none";
+  document.getElementById("settingsConnect").style.display=connected?"none":"inline-block";
+  document.getElementById("settingsSync").style.display=connected?"inline-block":"none";
+  document.getElementById("shopInfo").textContent=connected ? (shopName ? "Connected shop: "+shopName : "Etsy shop connected.") : "Connect your Etsy shop to replace the sample data with real data.";
+  document.getElementById("settingsConnection").textContent=connected ? (shopName ? "Connected: "+shopName : "Connected to Etsy") : "Not connected";
+}
+
+function showModal(){document.getElementById("modal").classList.add("show")}
+function hideModal(){document.getElementById("modal").classList.remove("show")}
+document.getElementById("connectBtn").onclick=showModal;
+document.getElementById("settingsConnect").onclick=showModal;
+document.getElementById("closeModal").onclick=hideModal;
+document.getElementById("startOAuth").onclick=()=>{ window.location.href=BACKEND+"/auth/etsy"; };
+
+document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active"); document.getElementById(b.dataset.page).classList.add("active");
+});
+
+function renderSample(){
+ document.getElementById("productsTable").innerHTML=`<table><tr><th>Product</th><th>Profit</th><th>Margin</th></tr>
+ <tr><td>Custom T-Shirt</td><td>${money(7.5)}</td><td>25.0%</td></tr>
+ <tr><td>Custom Mug</td><td>${money(7.25)}</td><td>29.0%</td></tr></table>`;
+ document.getElementById("costBreakdown").innerHTML=`<div class="kpi"><span>Product Costs</span><b>$6,400</b></div>
+ <div class="kpi"><span>Shipping</span><b>$2,700</b></div>
+ <div class="kpi"><span>Etsy Fees</span><b>$1,850</b></div>
+ <div class="kpi"><span>Advertising</span><b>$650</b></div>`;
+}
+renderSample();
+
+async function checkConnection(){
+ try{
+   const r=await fetch(API+"/etsy/status");
+   if(!r.ok)return;
+   const d=await r.json();
+   if(d.connected){
+     state.connected=true;
+     setStatus(true, d.shop_name || d.shop_title || "");
+     await loadSummary();
+   }
+ }catch(e){ console.warn(e); }
+}
+async function loadSummary(){
+ try{
+   const r=await fetch(API+"/etsy/data-summary");
+   if(!r.ok)return;
+   const d=await r.json();
+   state.summary=d;
+   // Only replace the sample dashboard when the backend has actual synchronized data.
+   if(d && (d.orders_count>0 || d.transactions_count>0 || d.receipts_count>0)){
+     const revenue=Number(d.total_revenue||d.revenue||0);
+     const costs=Number(d.total_etsy_fees||d.total_fees||0);
+     const profit=revenue-costs;
+     const margin=revenue?profit/revenue*100:0;
+     document.getElementById("revenue").textContent=money(revenue);
+     document.getElementById("costs").textContent=money(costs);
+     document.getElementById("profitValue").textContent=money(profit);
+     document.getElementById("margin").textContent=margin.toFixed(1)+"%";
+     document.querySelectorAll(".metric-sub").forEach(x=>x.textContent="Live Etsy data");
+     document.getElementById("connectionBanner").innerHTML="<b>Connected:</b> Etsy data is now available. Product/Printify cost matching is the next calculation layer.";
+   }
+ }catch(e){console.warn(e)}
+}
+
+async function syncEtsy(){
+ const msg=document.getElementById("syncMsg"); msg.textContent="Syncing Etsy data…"; msg.classList.add("show");
+ try{
+   const r=await fetch(API+"/etsy/sync",{method:"POST"});
+   const d=await r.json();
+   if(!r.ok) throw new Error(d.detail||d.error||"Sync failed");
+   msg.textContent="Sync completed. Refreshing dashboard…";
+   await loadSummary();
+   setTimeout(()=>location.reload(),700);
+ }catch(e){msg.textContent="Sync error: "+e.message}
+}
+document.getElementById("syncBtn").onclick=syncEtsy;
+document.getElementById("settingsSync").onclick=syncEtsy;
+
+function calcProfit(){
+ const p=+document.getElementById("pcPrice").value||0,c=+document.getElementById("pcProduct").value||0,s=+document.getElementById("pcShip").value||0,o=+document.getElementById("pcOther").value||0,f=(+document.getElementById("pcFee").value||0)/100,a=(+document.getElementById("pcAds").value||0)/100;
+ const profit=p-c-s-o-p*(f+a); const margin=p?profit/p*100:0;
+ document.getElementById("pcResult").textContent=money(profit)+" profit";
+ document.getElementById("pcMargin").textContent=margin.toFixed(1)+"% margin";
+}
+document.querySelectorAll("#profit input").forEach(x=>x.oninput=calcProfit); calcProfit();
+
+function calcPrice(){
+ const t=+document.getElementById("prTarget").value||0,c=+document.getElementById("prProduct").value||0,s=+document.getElementById("prShip").value||0,o=+document.getElementById("prOther").value||0,f=(+document.getElementById("prFee").value||0)/100,a=(+document.getElementById("prAds").value||0)/100,d=(+document.getElementById("prDiscount").value||0)/100;
+ const netRate=1-f-a; const sale=(t+c+s+o)/netRate; const list=d<1?sale/(1-d):0;
+ document.getElementById("prResult").textContent=money(list)+" required list price";
+}
+document.querySelectorAll("#pricing input").forEach(x=>x.oninput=calcPrice); calcPrice();
+
+const params=new URLSearchParams(location.search);
+if(params.get("etsy_connected")==="1"){
+  history.replaceState({},document.title,location.pathname);
+}
+checkConnection();
+</script>
+</body>
+</html>
