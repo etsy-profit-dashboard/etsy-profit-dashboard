@@ -120,7 +120,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;p
   <div class="card" style="margin-top:18px">
     <div class="section-title">Etsy Connection</div>
     <div id="settingsConnection">Not connected</div>
-    <div class="actions" style="margin-top:16px"><button class="primary" id="settingsConnect">Connect Etsy</button><button class="secondary" id="settingsSync" style="display:none">Sync Data</button></div>
+    <div class="actions" style="margin-top:16px"><button class="primary" id="settingsConnect">Connect Etsy</button><button class="secondary" id="settingsSync" style="display:none">Sync Data</button><button class="secondary" id="disconnectBtn" style="display:none">Disconnect Etsy</button></div>
   </div>
 </section>
 </main>
@@ -149,6 +149,7 @@ function setStatus(connected, shopName){
   document.getElementById("syncBtn").style.display=connected?"inline-block":"none";
   document.getElementById("settingsConnect").style.display=connected?"none":"inline-block";
   document.getElementById("settingsSync").style.display=connected?"inline-block":"none";
+  document.getElementById("disconnectBtn").style.display=connected?"inline-block":"none";
   document.getElementById("shopInfo").textContent=connected ? (shopName ? "Connected shop: "+shopName : "Etsy shop connected.") : "Connect your Etsy shop to replace the sample data with real data.";
   document.getElementById("settingsConnection").textContent=connected ? (shopName ? "Connected: "+shopName : "Connected to Etsy") : "Not connected";
 }
@@ -159,6 +160,10 @@ document.getElementById("connectBtn").onclick=showModal;
 document.getElementById("settingsConnect").onclick=showModal;
 document.getElementById("closeModal").onclick=hideModal;
 document.getElementById("startOAuth").onclick=()=>{ window.location.href=BACKEND+"/auth/etsy"; };
+document.getElementById("disconnectBtn").onclick=async()=>{
+  try{ await fetch(API+"/etsy/disconnect",{method:"POST",credentials:"include"}); }catch(e){}
+  location.reload();
+};
 
 document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>{
  document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));
@@ -179,7 +184,7 @@ renderSample();
 
 async function checkConnection(){
  try{
-   const r=await fetch(API+"/etsy/status");
+   const r=await fetch(API+"/etsy/status",{credentials:"include"});
    if(!r.ok)return;
    const d=await r.json();
    if(d.connected){
@@ -191,7 +196,7 @@ async function checkConnection(){
 }
 async function loadSummary(){
  try{
-   const r=await fetch(API+"/etsy/data-summary");
+   const r=await fetch(API+"/etsy/data-summary",{credentials:"include"});
    if(!r.ok)return;
    const d=await r.json();
    state.summary=d;
@@ -214,7 +219,7 @@ async function loadSummary(){
 async function syncEtsy(){
  const msg=document.getElementById("syncMsg"); msg.textContent="Syncing Etsy data…"; msg.classList.add("show");
  try{
-   const r=await fetch(API+"/etsy/sync",{method:"POST"});
+   const r=await fetch(API+"/etsy/sync",{method:"POST",credentials:"include"});
    const d=await r.json();
    if(!r.ok) throw new Error(d.detail||d.error||"Sync failed");
    msg.textContent="Sync completed. Refreshing dashboard…";
